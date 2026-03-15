@@ -35,10 +35,6 @@ A naive approach — placing traps at the largest rivers — fails because:
 4. **Downstream impact varies**: a trap upstream of a drinking water intake has orders of magnitude more public health value than one upstream of an industrial canal
 5. **Physical feasibility** (road access, bank slope, flow velocity, land ownership) eliminates many otherwise-optimal locations
 
-### Prior approach: WaterGate (Cheng et al., 2023)
-
-The WaterGate model scored locations on three parameters: catchment area (A), runoff coefficient (C), and discharge (Q = CiA). GRIME extends this from 3 to 28 parameters across 6 families and adds feasibility constraints, environmental justice weighting, and a formal two-level scoring architecture.
-
 ### Constraints and assumptions
 
 - All data sources must be free and require no API keys (census, EPA, USGS, OSM)
