@@ -761,10 +761,9 @@ No formal benchmarks have been run. Times above are observed during development.
 
 ### A. References
 
-1. Cheng, G., Anand, N., Rose, T. (2023). *WaterGate: An Accessible Computational Model of Flooding Patterns.* Wolfram Community.
-2. Chow, V.T. (1959). *Open-Channel Hydraulics.* McGraw-Hill.
-3. Leopold, L.B. (1964). *Fluvial Processes in Geomorphology.*
-4. Manning, R. (1891). *On the flow of water in open channels and pipes.*
+1. Chow, V.T. (1959). *Open-Channel Hydraulics.* McGraw-Hill.
+2. Leopold, L.B. (1964). *Fluvial Processes in Geomorphology.*
+3. Manning, R. (1891). *On the flow of water in open channels and pipes.*
 
 ### B. Glossary
 
