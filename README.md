@@ -20,6 +20,60 @@ GRIME is a multi-parameter optimization system that identifies optimal locations
 
 ---
 
+## Visualizations
+
+*All surfaces generated in the Wolfram Language from real USGS elevation data and GRIME's scoring functions. See [full documentation](dashboard/docs/documentation.md) for derivations and code.*
+
+### DEM Terrain — Durham, NC
+
+<p align="center">
+<img src="dashboard/docs/images/terrain_surface.png" width="700">
+</p>
+
+> 3D elevation surface from USGS 3DEP at 10m resolution. Stream valleys visible as low-elevation grooves define where GRIME extracts candidate net sites.
+
+### Composite Score Surface
+
+<p align="center">
+<img src="dashboard/docs/images/composite_surface.png" width="700">
+</p>
+
+> The final composite score as a function of Generation (trash input) and Impact (downstream consequence), with Flow and Feasibility held constant. The diagonal ridge shows that high scores require *both* trash presence and downstream consequence — neither alone is sufficient.
+
+### Feasibility Score — Width x Velocity
+
+<p align="center">
+<img src="dashboard/docs/images/feasibility_surface.png" width="700">
+</p>
+
+> Deployment feasibility as a function of channel width and flow velocity. The green plateau marks the sweet spot: narrow, moderate-velocity channels where nets can be spanned and anchored. Red zones are eliminated by hard gates.
+
+### Manning's Equation — V(Slope, Roughness)
+
+<p align="center">
+<img src="dashboard/docs/images/manning_surface.png" width="700">
+</p>
+
+> Flow velocity estimated from Manning's equation across slope and roughness parameter space. Steep, smooth channels (high slope, low roughness) produce dangerous velocities; flat, rough channels produce stagnant conditions.
+
+### Environmental Justice Index
+
+<p align="center">
+<img src="dashboard/docs/images/ej_surface.png" width="700">
+</p>
+
+> Environmental justice burden across a synthetic metro region. Peaks identify overburdened communities where trash interception has the highest equity value — GRIME weights these areas higher in the Impact sub-score.
+
+### Dirichlet Sensitivity — Weight Perturbations
+
+<p align="center">
+<img src="dashboard/docs/images/dirichlet_simplex.png" width="600">
+</p>
+
+> 500 weight vectors sampled from a Dirichlet distribution (κ=10) projected onto a ternary diagram. The red dot is the baseline. GRIME recomputes rankings under each perturbation to test whether top-ranked sites are robust to weight assumptions.
+
+---
+
 ## 2. Problem Statement
 
 ### The problem
