@@ -311,38 +311,62 @@ where $R = 6{,}371$ km is the Earth's mean radius, $\phi$ is latitude, and $\lam
 (* Candidate placement along a meandering stream *)
 SeedRandom[12];
 
-nPts = 200;
-t = Subdivide[0, 4 Pi, nPts];
+(* Main river — wide horizontal meanders *)
+nPts = 300;
+t = Subdivide[0, 10, nPts];
 river = Table[{
-  s + 1.2 Sin[1.3 s] + 0.5 Sin[2.7 s],
-  s * 2.5 + 0.8 Cos[1.8 s]
+  s * 3,
+  4 Sin[0.8 s] + 2 Sin[1.7 s] + 0.8 Cos[2.5 s]
 }, {s, t}];
-(* Note: if you get a bracket error, make sure all Sin[]/Cos[] use square brackets *)
 
-spacing = 8;
+spacing = 12;
 candidates = river[[1 ;; ;; spacing]];
 
-branchStart = river[[80]];
+(* Tributary branching off at ~40% along the main river *)
+branchStart = river[[120]];
 tributary = Table[
-  branchStart + {-s + 0.6 Sin[2 s], s * 1.5 + 0.3 Cos[3 s]},
-  {s, Subdivide[0, 3, 60]}
+  branchStart + {-2.5 s + 1.5 Sin[1.5 s], -s * 3 - 1.2 Cos[2 s]},
+  {s, Subdivide[0, 2.5, 80]}
 ];
 tribCandidates = tributary[[1 ;; ;; spacing]];
 
+(* Second smaller tributary *)
+branch2 = river[[200]];
+trib2 = Table[
+  branch2 + {1.5 s + Sin[2 s], s * 2.5 + 0.8 Sin[3 s]},
+  {s, Subdivide[0, 2, 50]}
+];
+trib2Candidates = trib2[[1 ;; ;; spacing]];
+
 Graphics[{
-  {RGBColor["#1565C0"], Thickness[0.005], Line[river]},
-  {RGBColor["#42A5F5"], Thickness[0.003], Line[tributary]},
-  {RGBColor["#58B09C"], Opacity[0.08], Disk[#, 2.5] & /@ candidates},
-  {RGBColor["#58B09C"], PointSize[0.015], Point /@ candidates},
-  {RGBColor["#81C784"], PointSize[0.012], Point /@ tribCandidates},
-  {GrayLevel[0.3], Style[#, 9] & /@
-    MapIndexed[Text[#2[[1]], #1 + {0.5, 0.5}] &, candidates]}
+  (* Rivers *)
+  {RGBColor["#1565C0"], Thickness[0.004], Line[river]},
+  {RGBColor["#42A5F5"], Thickness[0.0025], Line[tributary]},
+  {RGBColor["#42A5F5"], Thickness[0.002], Line[trib2]},
+
+  (* Catchment halos *)
+  {RGBColor["#58B09C"], Opacity[0.06], Disk[#, 1.8] & /@ candidates},
+  {RGBColor["#81C784"], Opacity[0.05], Disk[#, 1.2] & /@ tribCandidates},
+
+  (* Candidate dots *)
+  {RGBColor["#58B09C"], PointSize[0.012], Point /@ candidates},
+  {RGBColor["#81C784"], PointSize[0.009], Point /@ tribCandidates},
+  {RGBColor["#A5D6A7"], PointSize[0.008], Point /@ trib2Candidates},
+
+  (* Labels — only label every other candidate to reduce clutter *)
+  {GrayLevel[0.4],
+    MapIndexed[
+      If[Mod[#2[[1]], 2] == 1,
+        Text[Style[#2[[1]], 8], #1 + {0.3, 0.4}],
+        Nothing] &,
+      candidates]}
 },
   PlotLabel -> Style["Candidate Net Sites \[LongDash] 200m Spacing", 14, Bold],
   Background -> White,
   PlotRange -> All,
-  PlotRangePadding -> 2,
-  ImageSize -> 800
+  PlotRangePadding -> 1.5,
+  ImageSize -> 800,
+  AspectRatio -> 0.45
 ]
 ```
 
@@ -575,7 +599,7 @@ colors = {RGBColor["#E53935"], RGBColor["#FF7043"],
 
 BarChart[
   data[[All, 2]],
-  ChartLabels -> Placed[data[[All, 1]], Below],
+  ChartLabels -> Placed[Style[#, 10] & /@ data[[All, 1]], Below],
   ChartStyle -> colors,
   BarSpacing -> 0.4,
   PlotLabel -> Style["Runoff Coefficient by Land Cover Type", 14, Bold],
@@ -584,7 +608,8 @@ BarChart[
   GridLines -> {None, {0.2, 0.4, 0.6, 0.8, 1.0}},
   GridLinesStyle -> Directive[GrayLevel[0.85]],
   LabelStyle -> Directive[10],
-  ImageSize -> 700
+  ImagePadding -> {{50, 20}, {60, 30}},
+  ImageSize -> 750
 ]
 ```
 
@@ -871,34 +896,35 @@ passGate = MapThread[
   {widths, velocities, ownership}
 ];
 
-Graphics[{
-  {GrayLevel[0.8], PointSize[0.012],
-    Point /@ Pick[Transpose[{widths, velocities}], passGate, False]},
-  {PointSize[0.016],
-    MapThread[
-      If[#2,
-        {Blend[{RGBColor["#1565C0"], RGBColor["#66BB6A"], RGBColor["#FFCC02"]},
-          RandomReal[]], Point[#1]},
-        Nothing
-      ] &,
-      {Transpose[{widths, velocities}], passGate}
-    ]
-  },
-  {RGBColor["#E53935"], Thickness[0.003], Dashing[{0.02, 0.01}],
-    Line[{{50, 0}, {50, 5.5}}]},
-  {RGBColor["#E53935"], Thickness[0.003], Dashing[{0.02, 0.01}],
-    Line[{{0, 3.0}, {85, 3.0}}]},
-  Text[Style["Width Gate: 50m", 11, RGBColor["#E53935"]], {52, 4.8}, {-1, 0}],
-  Text[Style["Velocity Gate: 3.0 m/s", 11, RGBColor["#E53935"]], {60, 3.2}, {-1, -1}],
-  Text[Style["Feasible", 12, Bold, RGBColor["#1B5E20"]], {25, 1.5}],
-  Text[Style["Eliminated", 11, GrayLevel[0.6]], {65, 1.5}]
-},
-  Axes -> True,
-  AxesLabel -> {"Channel Width (m)", "Flow Velocity (m/s)"},
-  PlotLabel -> Style["Hard Gate Constraint Filtering", 14, Bold],
-  PlotRange -> {{0, 85}, {0, 5.5}},
-  ImageSize -> 750,
-  Background -> White
+feasiblePts = Pick[Transpose[{widths, velocities}], passGate];
+eliminatedPts = Pick[Transpose[{widths, velocities}], passGate, False];
+
+Show[
+  ListPlot[{feasiblePts, eliminatedPts},
+    PlotStyle -> {
+      Directive[RGBColor["#1565C0"], PointSize[0.015], Opacity[0.8]],
+      Directive[GrayLevel[0.75], PointSize[0.012], Opacity[0.5]]
+    },
+    PlotRange -> {{0, 85}, {0, 5.5}},
+    AspectRatio -> 0.5,
+    Frame -> True,
+    FrameLabel -> {"Channel Width (m)", "Flow Velocity (m/s)"},
+    PlotLabel -> Style["Hard Gate Constraint Filtering", 14, Bold],
+    ImageSize -> 750,
+    ImagePadding -> {{60, 30}, {50, 40}},
+    PlotLegends -> Placed[{"Feasible", "Eliminated"}, {Right, Top}],
+    Background -> White
+  ],
+  Graphics[{
+    {RGBColor["#E53935"], Thickness[0.003], Dashing[{0.02, 0.01}],
+      Line[{{50, 0}, {50, 5.5}}]},
+    {RGBColor["#E53935"], Thickness[0.003], Dashing[{0.02, 0.01}],
+      Line[{{0, 3.0}, {85, 3.0}}]},
+    Text[Style["Width Gate: 50m", 11, RGBColor["#E53935"]], {52, 4.8}, {-1, 0}],
+    Text[Style["Velocity Gate: 3.0 m/s", 11, RGBColor["#E53935"]], {42, 3.25}, {-1, -1}],
+    Text[Style["Feasible Zone", 13, Bold, RGBColor["#1B5E20"]], {25, 1.5}],
+    Text[Style["Eliminated", 11, GrayLevel[0.5]], {65, 1.5}]
+  }]
 ]
 ```
 
@@ -928,32 +954,46 @@ baseline = {0.30, 0.30, 0.15};
 kappa = 10;
 alpha = kappa * baseline;
 
-samples = RandomVariate[DirichletDistribution[alpha], 500];
-samples3 = (# / Total[#]) & /@ samples;
+(* Wolfram DirichletDistribution[{a1,a2,a3}] returns 2-component vectors;
+   the third component is 1 - x1 - x2. Reconstruct full 3-vectors. *)
+raw = RandomVariate[DirichletDistribution[alpha], 500];
+samples = Append[#, 1 - Total[#]] & /@ raw;
 
-ternary[{a_, b_, c_}] := Module[{s = a + b + c},
+(* Ternary projection: maps {a, b, c} onto 2D equilateral triangle *)
+ternary[{a_, b_, c_}] := With[{s = a + b + c},
   {(2 b + c) / (2 s), c Sqrt[3] / (2 s)}
 ];
 
-pts = ternary /@ samples3;
-baselinePt = ternary[baseline / Total[baseline]];
+pts = ternary /@ samples;
+baselinePt = ternary[baseline];
 
-Graphics[{
-  {GrayLevel[0.3], Thickness[0.002],
-    Line[{ternary[{1,0,0}], ternary[{0,1,0}], ternary[{0,0,1}], ternary[{1,0,0}]}]},
-  {RGBColor["#1565C0"], Opacity[0.3], PointSize[0.006],
-    Point /@ pts},
-  {RGBColor["#E53935"], PointSize[0.025], Point[baselinePt]},
-  {RGBColor["#E53935"],
-    Text[Style["  Baseline", 11, Bold], baselinePt, {-1, 0}]},
-  Text[Style["Generation", 12, Bold], ternary[{1, 0, 0}] + {0, -0.04}],
-  Text[Style["Impact", 12, Bold], ternary[{0, 1, 0}] + {0, -0.04}],
-  Text[Style["Feasibility", 12, Bold], ternary[{0, 0, 1}] + {0, 0.04}]
-},
-  PlotLabel -> Style["Dirichlet Weight Perturbations (\[Kappa] = 10)", 14, Bold],
-  PlotRange -> {{-0.15, 1.15}, {-0.12, 1.0}},
-  ImageSize -> 700,
-  Background -> White
+(* Triangle corners *)
+cA = ternary[{1, 0, 0}];
+cB = ternary[{0, 1, 0}];
+cC = ternary[{0, 0, 1}];
+
+Show[
+  ListPlot[pts,
+    PlotStyle -> Directive[RGBColor["#1565C0"], PointSize[0.012], Opacity[0.5]],
+    PlotRange -> {{-0.15, 1.15}, {-0.12, 1.05}},
+    Axes -> False,
+    ImageSize -> 700,
+    ImagePadding -> {{30, 30}, {30, 40}},
+    Background -> White,
+    PlotLabel -> Style["Dirichlet Weight Perturbations (\[Kappa] = 10)", 14, Bold]
+  ],
+  Graphics[{
+    (* Triangle outline *)
+    {GrayLevel[0.3], Thickness[0.002], Line[{cA, cB, cC, cA}]},
+    (* Baseline marker — on top of blue cloud *)
+    {RGBColor["#E53935"], PointSize[0.03], Point[baselinePt]},
+    {RGBColor["#E53935"],
+      Text[Style["  Baseline", 11, Bold], baselinePt, {-1, 0}]},
+    (* Vertex labels *)
+    Text[Style["Generation", 12, Bold], cA + {0, -0.05}],
+    Text[Style["Impact", 12, Bold], cB + {0, -0.05}],
+    Text[Style["Feasibility", 12, Bold], cC + {0, 0.05}]
+  }]
 ]
 ```
 
@@ -981,11 +1021,10 @@ robustness = Join[
 
 Histogram[robustness,
   {10},
-  ColorFunction -> Function[{height, x},
-    Blend[{RGBColor["#1565C0"], RGBColor["#66BB6A"],
-      RGBColor["#FFCC02"], RGBColor["#E53935"]}, x]],
+  ColorFunction -> (Blend[{RGBColor["#1565C0"], RGBColor["#66BB6A"],
+      RGBColor["#FFCC02"], RGBColor["#E53935"]}, #] &),
   AxesLabel -> {"Robustness (%)", "Number of Sites"},
-  PlotLabel -> Style["Robustness Score Distribution\n(50 Dirichlet Perturbations)", 14, Bold],
+  PlotLabel -> Style[Column[{"Robustness Score Distribution", "(50 Dirichlet Perturbations)"}, Alignment -> Center], 14, Bold],
   ChartBaseStyle -> EdgeForm[GrayLevel[0.4]],
   GridLines -> {None, Automatic},
   GridLinesStyle -> Directive[GrayLevel[0.9]],
